@@ -1,94 +1,60 @@
-"use client";
-
 import React from "react";
 
 interface Props {
   title: string;
-  badge?: string;
-  children: React.ReactNode;
+  badge: string;
+  selected?: boolean;
+  onSelect?: () => void;
   onRemove?: () => void;
   draggable?: boolean;
-  onDragStart?: (e: React.DragEvent<HTMLDivElement>) => void;
-  onDragEnd?: (e: React.DragEvent<HTMLDivElement>) => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
+  children: React.ReactNode;
 }
 
-export default function ModuleCardShell({
-  title,
-  badge,
-  children,
-  onRemove,
-  draggable,
-  onDragStart,
-  onDragEnd,
-}: Props) {
+export default function ModuleCardShell({ title, badge, selected, onSelect, onRemove, draggable, onDragStart, onDragEnd, children }: Props) {
   return (
     <div
       draggable={draggable}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
+      onDragStart={(e) => {
+        console.log(`[DragStart] module: ${title}`);
+        e.dataTransfer.effectAllowed = "move";
+        onDragStart?.();
+      }}
+      onDragEnd={() => {
+        console.log(`[DragEnd] module: ${title}`);
+        onDragEnd?.();
+      }}
+      onClick={onSelect}
       style={{
-        borderRadius: 24,
-        padding: 18,
-        background: "linear-gradient(180deg,#ffffff,#f8fbff)",
-        border: "1px solid #e5e7eb",
-        boxShadow: "0 12px 28px rgba(15,23,42,0.08)",
-        cursor: draggable ? "grab" : "default",
+        borderRadius: 28,
+        padding: 14,
+        background: "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96))",
+        border: selected ? "1px solid rgba(59,130,246,0.65)" : "1px solid rgba(148,163,184,0.18)",
+        boxShadow: selected ? "0 0 0 3px rgba(59,130,246,0.16), 0 28px 60px rgba(15,23,42,0.16)" : "0 18px 44px rgba(15,23,42,0.12)",
+        cursor: "grab",
+        transition: "all 0.22s ease",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 14,
-        }}
-      >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "4px 4px 12px" }}>
         <div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "#111827" }}>
-            {title}
-          </div>
-          {badge ? (
-            <div
-              style={{
-                marginTop: 6,
-                display: "inline-block",
-                fontSize: 12,
-                color: "#2563eb",
-                background: "#eff6ff",
-                borderRadius: 999,
-                padding: "4px 10px",
-                fontWeight: 700,
-              }}
-            >
-              {badge}
-            </div>
-          ) : null}
+          <div style={{ fontSize: 17, fontWeight: 900, color: "#0f172a" }}>{title}</div>
+          <div style={{ marginTop: 4, fontSize: 12, color: "#64748b" }}>{badge}</div>
         </div>
-
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <span style={{ color: "#94a3b8", fontSize: 18 }}>⋮⋮</span>
-          {onRemove ? (
-            <button
-              onClick={onRemove}
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                border: "none",
-                cursor: "pointer",
-                background: "#fee2e2",
-                color: "#b91c1c",
-                fontSize: 18,
-                fontWeight: 800,
-              }}
-            >
-              ×
-            </button>
-          ) : null}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ padding: "6px 10px", borderRadius: 999, fontSize: 11, fontWeight: 800, color: "#1d4ed8", background: "rgba(59,130,246,0.08)" }}>draggable</div>
+          <button
+            onClick={(event) => {
+              event.stopPropagation();
+              onRemove?.();
+            }}
+            style={{ width: 34, height: 34, borderRadius: 12, border: "1px solid rgba(148,163,184,0.2)", background: "#fff", cursor: "pointer", fontSize: 16, color: "#ef4444" }}
+          >
+            ×
+          </button>
         </div>
       </div>
-
-      {children}
+      <div>{children}</div>
     </div>
   );
 }

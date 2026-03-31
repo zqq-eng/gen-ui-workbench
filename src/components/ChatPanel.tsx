@@ -1,208 +1,63 @@
 "use client";
-import { useMemo, useState } from "react";
-import { ChatMessage } from "../types/workspace";
 
-interface ChatPanelProps {
-  messages: ChatMessage[];
+import { useMemo, useState } from "react";
+import { ModuleItem, WorkspaceConfig } from "../types/workspace";
+
+interface Props {
+  messages: { id: string; role: "user" | "assistant"; content: string }[];
+  selectedModule?: ModuleItem;
+  config: WorkspaceConfig;
   onSend: (input: string) => void;
+  onUpdateSelectedTitle: (value: string) => void;
 }
 
-export default function ChatPanel({ messages, onSend }: ChatPanelProps) {
-  const [input, setInput] = useState("");
+const quickPrompts = [
+  "切换成双列布局",
+  "切换成三列布局",
+  "新增地图模块到第一列",
+  "新增趋势图到第二列",
+  "新增表格到第三列",
+  "把地图放到左边",
+  "把趋势图放到第二列",
+];
 
-  const quickActions = useMemo(
-    () => [
-      "帮我看最近7天水质趋势，再加一个告警列表",
-      "再加一个统计卡片",
-      "我只想看 pH 和总磷",
-      "换成左右布局",
-      "把地图放左边，趋势图放右边",
-      "删除告警",
-      "清空",
-    ],
-    []
-  );
+export default function ChatPanel({ messages, selectedModule, config, onSend, onUpdateSelectedTitle }: Props) {
+  const [input, setInput] = useState("");
+  const layoutLabel = useMemo(() => ({ single: "单列", twoColumn: "双列", threeColumn: "三列", fourColumn: "四列" }[config.layout]), [config.layout]);
 
   return (
-    <div
-      style={{
-        height: "100vh",
-        padding: 20,
-        boxSizing: "border-box",
-        borderRight: "1px solid rgba(255,255,255,0.12)",
-        background:
-          "linear-gradient(180deg, rgba(11,17,32,0.98) 0%, rgba(18,25,46,0.98) 100%)",
-        color: "#fff",
-        display: "flex",
-        flexDirection: "column",
-        backdropFilter: "blur(18px)",
-      }}
-    >
-      <div
-        style={{
-          borderRadius: 22,
-          padding: 18,
-          marginBottom: 16,
-          background:
-            "linear-gradient(135deg, rgba(59,130,246,0.22), rgba(168,85,247,0.2))",
-          border: "1px solid rgba(255,255,255,0.12)",
-          boxShadow: "0 14px 40px rgba(0,0,0,0.28)",
-        }}
-      >
-        <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>
-          对话驱动工作台
-        </div>
-        <div
-          style={{
-            fontSize: 13,
-            lineHeight: 1.8,
-            color: "rgba(255,255,255,0.78)",
-          }}
-        >
-          自然语言输入后，系统会识别意图、生成模块配置 JSON，并驱动右侧工作台实时变化。
-        </div>
+    <div style={{ height: "100vh", display: "flex", flexDirection: "column", padding: 20, boxSizing: "border-box", background: "linear-gradient(180deg, #0f172a 0%, #111827 46%, #1e1b4b 100%)", color: "#fff" }}>
+      <div style={{ padding: 18, borderRadius: 24, background: "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 18px 40px rgba(0,0,0,0.18)" }}>
+        <div style={{ fontSize: 26, fontWeight: 900 }}>AI Layout Agent</div>
+        <div style={{ marginTop: 8, fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.78)" }}>当前布局：{layoutLabel}。你可以直接说“新增模块”“移动到第几列”“切换双列、三列、四列”。</div>
       </div>
-
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 8,
-          marginBottom: 14,
-        }}
-      >
-        {quickActions.map((item, index) => (
-          <button
-            key={index}
-            onClick={() => setInput(item)}
-            style={{
-              cursor: "pointer",
-              border: "1px solid rgba(255,255,255,0.12)",
-              background: "rgba(255,255,255,0.07)",
-              color: "#fff",
-              padding: "8px 12px",
-              borderRadius: 999,
-              fontSize: 12,
-              transition: "all .25s ease",
-            }}
-          >
-            {item}
-          </button>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 14, marginBottom: 14 }}>
+        {quickPrompts.map((prompt) => (
+          <button key={prompt} onClick={() => onSend(prompt)} style={{ borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.08)", color: "#fff", fontSize: 12, fontWeight: 700, padding: "10px 12px", cursor: "pointer" }}>{prompt}</button>
         ))}
       </div>
-
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: 14,
-          borderRadius: 24,
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03))",
-          border: "1px solid rgba(255,255,255,0.1)",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
-          display: "flex",
-          flexDirection: "column",
-          gap: 14,
-        }}
-      >
+      <div style={{ borderRadius: 24, padding: 16, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", marginBottom: 14 }}>
+        <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 10 }}>当前选中模块</div>
+        {selectedModule ? (
+          <div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.68)", marginBottom: 6 }}>模块标题</div>
+            <input value={selectedModule.title} onChange={(event) => onUpdateSelectedTitle(event.target.value)} style={{ width: "100%", height: 42, borderRadius: 14, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.08)", color: "#fff", padding: "0 12px", boxSizing: "border-box", outline: "none" }} />
+            <div style={{ marginTop: 10, fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.8 }}>类型：{selectedModule.type}<br />所在列：{selectedModule.zoneId}</div>
+          </div>
+        ) : (
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.66)", lineHeight: 1.8 }}>先在中间画布里点一个模块，右侧就会显示它的属性。</div>
+        )}
+      </div>
+      <div style={{ flex: 1, overflowY: "auto", padding: 16, borderRadius: 24, background: "linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))", border: "1px solid rgba(255,255,255,0.1)", display: "flex", flexDirection: "column", gap: 12 }}>
         {messages.map((msg) => (
-          <div
-            key={msg.id}
-            style={{
-              display: "flex",
-              justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
-            }}
-          >
-            <div
-              style={{
-                maxWidth: "86%",
-                borderRadius: 18,
-                padding: "12px 14px",
-                whiteSpace: "pre-wrap",
-                lineHeight: 1.8,
-                fontSize: 14,
-                background:
-                  msg.role === "user"
-                    ? "linear-gradient(135deg,#2563eb,#7c3aed)"
-                    : "rgba(255,255,255,0.08)",
-                color: "#fff",
-                border:
-                  msg.role === "user"
-                    ? "none"
-                    : "1px solid rgba(255,255,255,0.1)",
-                boxShadow:
-                  msg.role === "user"
-                    ? "0 12px 28px rgba(37,99,235,0.32)"
-                    : "0 10px 24px rgba(0,0,0,0.18)",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 11,
-                  opacity: 0.75,
-                  marginBottom: 6,
-                  letterSpacing: 0.5,
-                }}
-              >
-                {msg.role === "user" ? "USER" : "ASSISTANT"}
-              </div>
-              {msg.content}
-            </div>
+          <div key={msg.id} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start" }}>
+            <div style={{ maxWidth: "92%", borderRadius: 18, padding: "12px 14px", whiteSpace: "pre-wrap", lineHeight: 1.8, fontSize: 13, background: msg.role === "user" ? "linear-gradient(135deg, #2563eb, #7c3aed)" : "rgba(255,255,255,0.08)", border: msg.role === "user" ? "none" : "1px solid rgba(255,255,255,0.1)" }}>{msg.content}</div>
           </div>
         ))}
       </div>
-
-      <div
-        style={{
-          marginTop: 16,
-          padding: 14,
-          borderRadius: 22,
-          background: "rgba(255,255,255,0.06)",
-          border: "1px solid rgba(255,255,255,0.1)",
-        }}
-      >
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="请输入自然语言需求，例如：把地图放左边，趋势图放右边，再加一个统计卡片"
-          style={{
-            width: "100%",
-            minHeight: 100,
-            resize: "none",
-            border: "1px solid rgba(255,255,255,0.1)",
-            background: "rgba(255,255,255,0.05)",
-            color: "#fff",
-            borderRadius: 16,
-            padding: 14,
-            boxSizing: "border-box",
-            outline: "none",
-            fontSize: 14,
-            lineHeight: 1.8,
-          }}
-        />
-        <button
-          onClick={() => {
-            if (!input.trim()) return;
-            onSend(input);
-            setInput("");
-          }}
-          style={{
-            marginTop: 12,
-            width: "100%",
-            height: 46,
-            border: "none",
-            borderRadius: 14,
-            cursor: "pointer",
-            fontWeight: 800,
-            fontSize: 15,
-            color: "#fff",
-            background: "linear-gradient(135deg,#3b82f6,#8b5cf6,#ec4899)",
-            boxShadow: "0 14px 28px rgba(99,102,241,0.3)",
-          }}
-        >
-          发送指令
-        </button>
+      <div style={{ marginTop: 14, padding: 14, borderRadius: 22, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}>
+        <textarea value={input} onChange={(event) => setInput(event.target.value)} placeholder="请输入自然语言，例如：切换成三列布局，把地图放第一列，再新增一个统计卡片到第二列" style={{ width: "100%", minHeight: 92, resize: "none", borderRadius: 16, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "#fff", padding: 14, boxSizing: "border-box", outline: "none", lineHeight: 1.8 }} />
+        <button onClick={() => { if (!input.trim()) return; onSend(input); setInput(""); }} style={{ marginTop: 12, width: "100%", height: 46, border: "none", borderRadius: 14, cursor: "pointer", fontWeight: 900, color: "#fff", background: "linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899)", boxShadow: "0 14px 28px rgba(99,102,241,0.3)" }}>发送指令</button>
       </div>
     </div>
   );

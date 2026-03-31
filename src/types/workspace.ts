@@ -1,34 +1,38 @@
-export type ModuleType =
-  | "trendChart"
-  | "statCard"
-  | "alertList"
-  | "mapCard"
-  | "tableCard";
+export type ModuleType = "trendChart" | "statCard" | "alertList" | "mapCard" | "tableCard";
 
-export type LayoutType = "single" | "twoColumn";
+export type LayoutMode = "single" | "twoColumn" | "threeColumn" | "fourColumn";
+
+export type ZoneId = "col-1" | "col-2" | "col-3" | "col-4";
 
 export interface ModuleItem {
   id: string;
   type: ModuleType;
   title: string;
-  position?: "left" | "right";
-  props?: Record<string, any>;
+  zoneId: ZoneId;
+  props: Record<string, any>;
 }
 
 export interface WorkspaceConfig {
-  layout: LayoutType;
+  layout: LayoutMode;
   modules: ModuleItem[];
+  selectedModuleId?: string;
 }
 
-export interface ParsedAction {
-  type: "add" | "remove" | "update" | "layout" | "reset";
-  module?: Partial<ModuleItem>;
-  targetType?: ModuleType;
-  targetPosition?: "left" | "right";
-  removeMode?: "last" | "byType";
-  layout?: LayoutType;
+export interface ParsedAddModule {
+  type: ModuleType;
+  title?: string;
   props?: Record<string, any>;
+  targetZoneId?: ZoneId;
 }
+
+export type ParsedAction =
+  | { type: "add"; module: ParsedAddModule }
+  | { type: "remove"; moduleId?: string; targetType?: ModuleType }
+  | { type: "layout"; layout: LayoutMode }
+  | { type: "move"; targetType: ModuleType; targetZoneId: ZoneId }
+  | { type: "update"; targetType: ModuleType; title?: string; props?: Record<string, any> }
+  | { type: "select"; targetType: ModuleType }
+  | { type: "reset" };
 
 export interface ParsedResult {
   rawInput: string;
@@ -40,3 +44,10 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
 }
+
+export const layoutColumnsMap: Record<LayoutMode, ZoneId[]> = {
+  single: ["col-1"],
+  twoColumn: ["col-1", "col-2"],
+  threeColumn: ["col-1", "col-2", "col-3"],
+  fourColumn: ["col-1", "col-2", "col-3", "col-4"],
+};
